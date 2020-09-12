@@ -175,7 +175,6 @@ class App
   end
 
   def run
-    @gui_threads = []
     text_experiment(English, 5)
     key_experiment(English, 10_000)
     text_experiment(Russian, 5)
