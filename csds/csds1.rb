@@ -8,19 +8,19 @@ class Vigenere
   # @param key [String]
   # @param alphabet [Integer, #pos, Boolean, #include?] pos should return position of character in alphabet
   def self.encrypt(text, key, alphabet)
-    modufy(text, key, alphabet, 1)
+    modify(text, key, alphabet, 1)
   end
 
   def self.decrypt(text, key, alphabet)
-    modufy(text, key, alphabet, -1)
+    modify(text, key, alphabet, -1)
   end
 
   private
 
-  def self.modufy(text, key, alphabet, magic_param)
-    offset = key.chars.map { |char| magic_param * alphabet.pos_of(char) }.compact
+  def self.modify(text, key, alphabet, magic_param)
+    offset = key.chars.map! { |char| alphabet.pos_of(char) }.compact.map! { |i| i * magic_param }
     key_len = offset.length
-    text.chars.map.with_index do |char, index|
+    text.chars.map!.with_index do |char, index|
       alphabet.include?(char) ? alphabet.advance(char, offset[index % key_len]) : char
     end.join
   end
@@ -28,10 +28,10 @@ end
 
 class Caesar
   def self.key(text_arr, alphabet)
-    freq = text_arr.inject(Hash.new(0)) { |hash, char| hash.merge!(char => hash[char] + 1) }
+    freq = text_arr.inject(Hash.new(0)) { |hash, char| char == ' ' ? hash : hash.merge!(char => hash[char] + 1) }
     size = freq.values.sum
     freq.transform_values! { |v| v.to_f / size }
-    alphabet::FREQUENCIES.keys.map do |k|
+    alphabet::FREQUENCIES.keys.map! do |k|
       offset = alphabet.pos_of(k)
       [k, alphabet::FREQUENCIES.map { |k, v| (freq[alphabet.advance(k, offset)] - v) ** 2 }.sum]
     end.min { |a, b| a.last <=> b.last }.first
@@ -40,22 +40,23 @@ end
 
 class Kasiski
   def self.frequencies(text, alphabet)
-    result = Hash.new({ count: 0 })
+    result = {}
     n = 2
     pos_arr = (0..(text.length - n))
-    while pos_arr.any?
+    while pos_arr && pos_arr.any?
       temp_result = Hash.new({ count: 0 })
       pos_arr.each do |i|
         gr = text[i...(i + n)]
-        next unless gr =~ /^\p{L}.*\p{L}$/
+        # next unless gr =~ /^\p{L}.*\p{L}$/
         temp_result[gr] = { count: temp_result[gr][:count] + 1, pos: (temp_result[gr][:pos] || []).push(i) }
       end
       temp_result.delete_if { |_key, value| value[:count] == 1 }
-      break if temp_result.empty?
+      # break if temp_result.empty?
       result.merge!(temp_result)
-      pos_arr = temp_result.values.map { |v| v[:pos] }.flatten
+      pos_arr = temp_result.values.map! { |v| v[:pos] }.flatten!
       n += 1
     end
+    result.delete_if { |key, _value| key[0] == ' ' || key[-1] == ' ' }
     result.map do |key, value|
       weight = Math.log(key.delete(' ').size)
       value[:pos].each_cons(2).map { |prev, cur| { value: cur - prev, weight: weight } }
@@ -63,12 +64,12 @@ class Kasiski
   end
 
   def self.key_len(frequencies, threshold)
-    freq_threshold = ((frequencies.values.max.to_i * threshold).to_f / 100).floor
+    freq_threshold = ((frequencies.values.max * threshold).to_f / 100).floor
     frequencies.reject { |_k, v| v < freq_threshold }.keys.reduce(&:gcd) || 1
   end
 
   def self.key(text, key_len, alphabet)
-    text.chars.group_by.with_index { |c, i| i % key_len }.values.map { |text_arr| Caesar.key(text_arr, alphabet) }.join
+    text.chars.group_by.with_index { |c, i| i % key_len }.values.map! { |text_arr| Caesar.key(text_arr, alphabet) }.join
   end
 end
 
@@ -169,7 +170,7 @@ class App
   def text_piece(len, alphabet)
     str = alphabet == English ? @en_text : @ru_text
     start_pos = rand(0...(str.size - len))
-    str[start_pos...(start_pos + len)].chars.map do |char|
+    str[start_pos...(start_pos + len)].chars.map! do |char|
       alphabet.include?(char) ? char.upcase : ' '
     end.join
   end
