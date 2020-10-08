@@ -1,0 +1,6 @@
+[submodule "csds/csds2"]
+	path = csds/csds2
+	url = git@github.com:uvlad7/csds2.git
+[submodule "csds/csds2_front"]
+	path = csds/csds2_front
+	url = https://github.com/valkovik15/csds2.git
