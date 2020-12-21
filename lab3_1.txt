@@ -1,0 +1,239 @@
+--лабораторная выполняется в СУБД  Oracle. 
+--Скопируйте файлы EDU3.txt  в каталог C:\TEMP .
+--Раскройте файл и ознакомтесь со скриптом создания и заполнения таблиц для выполнения лабораторной. Таблица Bonus имеет дополнительный столбец tax (налог) со значениями null.  
+--Произведите запуск SQLPlus, PLSQLDeveloper или другого инструментария Oracle и соеденитесь с БД.  Запустите скрипты EDU3.txt на выполнение.
+--Вставте в эту строку Ваши ФИО, номер группы, курса. ФИО Ульяницкий В. А., группа 1, курс 4.      
+--Файл с отчётом о выполнении лабораторной создаётся путём вставки скриптов, созданных Вами программ после пунктов 1a), 1b), 1c), 2), 3).
+--Файл отчёта именуется фамилией студента  в английской транскрипции, с расширением .txt и сохраняется в cbcntvt edufpmi.bsu.by      .                   .
+--Вам необходимо создать ананимные блоки (программы) для начисления налога на прибыль и занесения его в соответсвующую запись таблицы Bonus.
+--Налог вычисляется по следующему правилу: 
+--налог равен 10% от начисленной  в месяце премии, если суммарная премия с начала года до конца рассматриваемого месяца не превышает 600;
+--налог равен 13% от начисленной  в месяце премии, если суммарная премия с начала года до конца рассматриваемого месяца больше 600, но не превышает 1100;
+--налог равен 15% от начисленной  в месяце премии, если суммарная премия с начала года до конца рассматриваемого месяца  больше 1100.
+
+--1.	Составьте программу вычисления налога и вставки его в таблицу Bonus:
+--a) с помощью простого цикла (loop) с курсором, оператора if или опретора case;
+DECLARE CURSOR bonusIterator IS
+SELECT
+  bonus.empno,
+  bonus.month,
+  bonus.year,
+  (
+    SELECT
+      sum(bonus.bonvalue)
+    FROM
+      bonus bonuscopy
+    WHERE
+      bonus.year = bonuscopy.year
+      AND bonus.empno = bonuscopy.empno
+      AND bonus.month >= bonuscopy.month
+  ) ACUM
+FROM
+  bonus;
+i bonusIterator % ROWTYPE;
+taxCount REAL: = 0;
+BEGIN OPEN bonusIterator;
+LOOP FETCH bonusIterator INTO i;
+EXIT
+  WHEN bonusIterator % NOTFOUND;
+IF i.acum <= 600 THEN taxCount: = 0.1;
+ELSIF i.acum <= 1100 THEN taxCount: = 0.13;
+  ELSE taxCount: = 0.15;
+END IF;
+UPDATE
+  bonus
+SET
+  tax = bonvalue * taxCount
+WHERE
+  empno = i.empno
+  AND YEAR = i.year
+  AND MONTH = i.month;
+END LOOP;
+CLOSE bonusIterator;
+END;
+/
+SELECT
+  *
+FROM
+  bonus;
+-- b)   с помощью курсорного цикла FOR;
+DECLARE CURSOR bonusIterator IS
+SELECT
+  bonus.empno,
+  bonus.month,
+  bonus.year,
+  (
+    SELECT
+      sum(bonus.bonvalue)
+    FROM
+      bonus bonuscopy
+    WHERE
+      bonus.year = bonuscopy.year
+      AND bonus.empno = bonuscopy.empno
+      AND bonus.month >= bonuscopy.month
+  ) ACUM
+FROM
+  bonus;
+i bonusIterator % ROWTYPE;
+taxCount REAL: = 0;
+BEGIN FOR i in bonusIterator LOOP IF i.acum <= 600 THEN taxCount: = 0.1;
+ELSIF i.acum <= 1100 THEN taxCount: = 0.13;
+  ELSE taxCount: = 0.15;
+END IF;
+UPDATE
+  bonus
+SET
+  tax = bonvalue * taxCount
+WHERE
+  empno = i.empno
+  AND YEAR = i.year
+  AND MONTH = i.month;
+END LOOP;
+END;
+/
+SELECT
+  *
+FROM
+  bonus;
+-- c) с помощью курсора с параметром, передавая номер сотрудника, для которого необходимо посчитать налог. 
+CREATE
+OR REPLACE PROCEDURE t1c(employeeNo IN INTEGER) IS CURSOR bonusIterator(employeeNo INTEGER) IS
+SELECT
+  bonus.empno,
+  bonus.month,
+  bonus.year,
+  (
+    SELECT
+      sum(bonus.bonvalue)
+    FROM
+      bonus bonuscopy
+    WHERE
+      bonus.year = bonuscopy.year
+      AND bonus.empno = bonuscopy.empno
+      AND bonus.month >= bonuscopy.month
+  ) ACUM
+FROM
+  bonus
+WHERE
+  bonus.empno = employeeNo;
+i bonusIterator % ROWTYPE;
+taxCount REAL: = 0;
+BEGIN FOR i in bonusIterator(employeeNo) LOOP IF i.acum <= 600 THEN taxCount: = 0.1;
+ELSIF i.acum <= 1100 THEN taxCount: = 0.13;
+  ELSE taxCount: = 0.15;
+END IF;
+UPDATE
+  bonus
+SET
+  tax = bonvalue * taxCount
+WHERE
+  empno = i.empno
+  AND YEAR = i.year
+  AND MONTH = i.month;
+END LOOP;
+END t1c;
+--2.   Создайте процедуру, вычисления налога и вставки его в таблицу Bonus за всё время начислений для конкретного сотрудника. В качестве параметров передать проценты налога (до 500, от 501 до 1000, выше 1000), номер сотрудника.
+CREATE
+OR REPLACE PROCEDURE t2(
+  employeeNo IN INTEGER,
+  tax1 IN REAL,
+  tax2 IN REAL,
+  tax3 IN REAL
+) IS CURSOR bonusIterator(employeeNo INTEGER) IS
+SELECT
+  bonus.empno,
+  bonus.month,
+  bonus.year,
+  (
+    SELECT
+      sum(bonus.bonvalue)
+    FROM
+      bonus bonuscopy
+    WHERE
+      bonus.year = bonuscopy.year
+      AND bonus.empno = bonuscopy.empno
+      AND bonus.month >= bonuscopy.month
+  ) ACUM
+FROM
+  bonus
+WHERE
+  bonus.empno = employeeNo;
+i bonusIterator % ROWTYPE;
+taxCount REAL: = 0;
+BEGIN FOR i in bonusIterator(employeeNo) LOOP IF i.acum <= 600 THEN taxCount: = tax1;
+ELSIF i.acum <= 1100 THEN taxCount: = tax2;
+  ELSE taxCount: = tax3;
+END IF;
+UPDATE
+  bonus
+SET
+  tax = bonvalue * taxCount
+WHERE
+  empno = i.empno
+  AND YEAR = i.year
+  AND MONTH = i.month;
+END LOOP;
+END t2;
+/ CALL t2(414, 0.05, 0.07, 0.1);
+SELECT
+  *
+FROM
+  bonus
+WHERE
+  empno = 414;
+--3.   Создайте функцию, вычисляющую суммарный налог на премию сотрудника за всё время начислений. В качестве параметров передать процент налога (до 500, от 501 до 100 , выше 1000), номер сотрудника.
+-- Возвращаемое значение – суммарный налог.
+
+(Я так понимаю в условии должно было быть до 600, от 601 до 1000 , выше 1000)
+CREATE
+OR REPLACE FUNCTION t3(
+  employeeNo IN INTEGER,
+  tax1 IN REAL,
+  tax2 IN REAL,
+  tax3 IN REAL
+) RETURN REAL IS CURSOR bonusIterator(employeeNo INTEGER) IS
+SELECT
+  bonus.empno,
+  bonus.month,
+  bonus.year,
+  bonus.bonvalue,
+  (
+    SELECT
+      sum(bonus.bonvalue)
+    FROM
+      bonus bonuscopy
+    WHERE
+      bonus.year = bonuscopy.year
+      AND bonus.empno = bonuscopy.empno
+      AND bonus.month >= bonuscopy.month
+  ) ACUM
+FROM
+  bonus
+WHERE
+  bonus.empno = employeeNo;
+i bonusIterator % ROWTYPE;
+taxCount REAL: = 0;
+currentTax REAL: = 0;
+totalTax REAL: = 0;
+BEGIN FOR i in bonusIterator(employeeNo) LOOP IF i.acum <= 600 THEN taxCount: = tax1;
+ELSIF i.acum <= 1100 THEN taxCount: = tax2;
+  ELSE taxCount: = tax3;
+END IF;
+currentTax: = i.bonvalue * taxCount;
+dbms_output.put_line('Tax recounted: ' || currentTax);
+UPDATE
+  bonus
+SET
+  tax = currentTax
+WHERE
+  empno = i.empno
+  AND YEAR = i.year
+  AND MONTH = i.month;
+totalTax: = totalTax + currentTax;
+END LOOP;
+RETURN totalTax;
+END t3;
+/ DECLARE c number;
+BEGIN c: = t3(414, 0.06, 0.11, 0.14);
+dbms_output.put_line('Total Tax: ' || c);
+END;

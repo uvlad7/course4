@@ -1,0 +1,25 @@
+[
+{
+  "directory": "/home/valkovik/PIRV/build",
+  "command": "/bin/g++-9     -fopenmp -O3 -DNDEBUG   -o CMakeFiles/Test1.dir/multiply_test.cpp.o -c /home/valkovik/PIRV/multiply_test.cpp",
+  "file": "/home/valkovik/PIRV/multiply_test.cpp"
+},
+
+{
+  "directory": "/home/valkovik/PIRV/build",
+  "command": "/bin/g++-9     -fopenmp -O3 -DNDEBUG   -o CMakeFiles/Utils.dir/utils.cpp.o -c /home/valkovik/PIRV/utils.cpp",
+  "file": "/home/valkovik/PIRV/utils.cpp"
+},
+
+{
+  "directory": "/home/valkovik/PIRV/build",
+  "command": "/bin/g++-9     -fopenmp -O3 -DNDEBUG   -o CMakeFiles/Lab1.dir/main.cpp.o -c /home/valkovik/PIRV/main.cpp",
+  "file": "/home/valkovik/PIRV/main.cpp"
+},
+
+{
+  "directory": "/home/valkovik/PIRV/build",
+  "command": "/bin/g++-9     -fopenmp -O3 -DNDEBUG   -o CMakeFiles/MatrixMultiply.dir/matrix_multiply.cpp.o -c /home/valkovik/PIRV/matrix_multiply.cpp",
+  "file": "/home/valkovik/PIRV/matrix_multiply.cpp"
+}
+]

@@ -1,0 +1,23 @@
+Start testing: Oct 03 19:59 +03
+----------------------------------------------------------
+1/1 Testing: testTkInter
+1/1 Test: testTkInter
+Command: "/usr/bin/python" "-c" "import Tkinter"
+Directory: /home/valkovik/PIRV/build
+"testTkInter" start time: Oct 03 19:59 +03
+Output:
+----------------------------------------------------------
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python2.7/lib-tk/Tkinter.py", line 42, in <module>
+    raise ImportError, str(msg) + ', please install the python-tk package'
+ImportError: No module named _tkinter, please install the python-tk package
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Failed.
+"testTkInter" end time: Oct 03 19:59 +03
+"testTkInter" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 03 19:59 +03

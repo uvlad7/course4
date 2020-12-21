@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="Linux-g++-9"
+	BuildStamp="20201003-1659-Experimental"
+	Name="valkovik-TUF-GAMING-FX504GE-FX80GE"
+	Generator="ctest-3.16.3"
+	CompilerName="/bin/g++-9"
+	CompilerVersion="9.3.0"
+	OSName="Linux"
+	Hostname="valkovik-TUF-GAMING-FX504GE-FX80GE"
+	OSRelease="5.4.0-48-generic"
+	OSVersion="#52-Ubuntu SMP Thu Sep 10 10:58:49 UTC 2020"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="158"
+	ProcessorCacheSize="8192"
+	NumberOfLogicalCPU="8"
+	NumberOfPhysicalCPU="4"
+	TotalVirtualMemory="2047"
+	TotalPhysicalMemory="23908"
+	LogicalProcessorsPerPhysical="2"
+	ProcessorClockFrequency="3389.53"
+	>
+	<Testing>
+		<StartDateTime>Oct 03 19:59 +03</StartDateTime>
+		<StartTestTime>1601744350</StartTestTime>
+		<TestList>
+			<Test>./testTkInter</Test>
+		</TestList>
+		<Test Status="failed">
+			<Name>testTkInter</Name>
+			<Path>.</Path>
+			<FullName>./testTkInter</FullName>
+			<FullCommandLine>/usr/bin/python "-c" "import Tkinter"</FullCommandLine>
+			<Results>
+				<NamedMeasurement type="text/string" name="Exit Code">
+					<Value>Failed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Exit Value">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Execution Time">
+					<Value>0.0413418</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Processors">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Completion Status">
+					<Value>Completed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Command Line">
+					<Value>/usr/bin/python "-c" "import Tkinter"</Value>
+				</NamedMeasurement>
+				<Measurement>
+					<Value encoding="base64" compression="gzip">eJyNj7sKwkAURPt8xZAmBmOCIggi6RRsrOxlEy9xyb64e1Pk740ERawsB4ZzZq6sWmpU22NhfRQwteQErTIGRkXJ9wlw0oaQHqKwdl2dFjDaEdYFtMPB+vtgqP7UqiFyZXRThVEe3m3K3SutpK+uvXZCXIbxjdhufhkAKx0JZxs8y5HZc4FJvLCxy7FEViAYUlNDuyivlfIgzKrJgTBdUR1lyRdgj4vHrIBTlu64yTzlP1jyBF+DYuY=</Value>
+				</Measurement>
+			</Results>
+		</Test>
+		<EndDateTime>Oct 03 19:59 +03</EndDateTime>
+		<EndTestTime>1601744350</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

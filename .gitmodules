@@ -1,6 +1,18 @@
 [submodule "csds/csds2"]
 	path = csds/csds2
-	url = git@github.com:uvlad7/csds2.git
+	url = https://github.com/uvlad7/csds2_front.git
 [submodule "csds/csds2_front"]
 	path = csds/csds2_front
-	url = https://github.com/valkovik15/csds2.git
+	url = https://github.com/uvlad7/csds2_front.git
+[submodule "diplom/Surdo"]
+	path = diplom/Surdo
+	url = https://github.com/PestrakMary/Surdo.git
+[submodule "diplom/SurdoAcousticModel"]
+	path = diplom/SurdoAcousticModel
+	url = https://github.com/uvlad7/SurdoAcousticModel.git
+[submodule "iis/lab1"]
+	path = iis/lab1
+	url = https://github.com/uvlad7/iis1.git
+[submodule "iis/lab2"]
+	path = iis/lab2
+	url = https://github.com/uvlad7/iis2.git

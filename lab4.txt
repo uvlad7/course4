@@ -1,0 +1,208 @@
+--Ëàáîðàòîðíàÿ âûïîëíÿåòñÿ â ÑÓÁÄ  Oracle. 
+--Cêîïèðóéòå ôàéë  EDU4.sql  â êàòàëîã C:\TEMP .
+--Ðàñêðîéòå ôàéë è îçíàêîìòåñü ñî ñêðèïòîì ñîçäàíèÿ è çàïîëíåíèÿ òàáëèö äëÿ âûïîëíåíèÿ ëàáîðàòîðíîé. 
+--Òàáëèöà Emp èìååò äîïîëíèòåëüíûå ñòîëáöû mstat (ñåìåéíîå ïîëîæåíèå), Nchild (êîëè÷åñòâî íåñîâåðøåííîëåòíèõ äåòåé).  
+--Ïðîèçâåäèòå çàïóñê SQLPlus, PLSQLDeveloper èëè äðóãîé ñèñòåìû ðàáîòû ñ Oracle è ñîåäåíèòåñü ñ ÁÄ.  Çàïóñòèòå ñêðèïòû EDU4.sql íà âûïîëíåíèå.
+--Âñòàâòå â ýòó ñòðîêó Âàøè ÔÈÎ, íîìåð ãðóïïû, êóðñà. ÔÈÎ                       , ãðóïïà            , êóðñ 4.      
+--Ôàéë ñ îò÷¸òîì î âûïîëíåíèè ëàáîðàòîðíîé ñîçäà¸òñÿ ïóò¸ì âñòàâêè ñêðèïòîâ, ñîçäàííûõ Âàìè ïðîãðàìì ïîñëå ïóíêòîâ 1, 2.
+--Ôàéë îò÷¸òà èìåíóåòñÿ ôàìèëèåé ñòóäåíòà  â àíãëèéñêîé òðàíñêðèïöèè, ñ ðàñøèðåíèåì .txt è ñîõðàíÿåòñÿ â êàòàëîã.
+
+--1. Ñîçäàéòå ïàêåò, âêëþ÷àþùèé â ñâîé ñîñòàâ ïðîöåäóðó ChildBonus è ôóíêöèþ EmpChildBonus. 
+--Ïðîöåäóðà ChildBonus äîëæíà âû÷èñëÿòü åæåãîäíóþ äîáàâêó ê 
+--çàðïëàòå ñîòðóäíèêîâ íà äåòåé çà 2019 ãîä è çàíîñèòü å¸ â âèäå äîïîëíèòåëüíîé ïðåìèè â ïåðâîì ìåñÿöå (ÿíâàðå) ñëåäóþùåãî 2020
+--êàëåíäàðíîãî ãîäà â ïîëå Bonvalue òàáëèöû Bonus. 
+--Â êà÷åñòâå ïàðàìåòðîâ ïðîöåäóðå ïåðåäàþòñÿ ïðîöåíòû â çàâèñèìîñòè îò êîëè÷åñòâà äåòåé (ñì. ïðàâèëî íà÷èñëåíèÿ äîáàâêè).
+--Ôóíêöèÿ EmpChildBonus äîëæíà âû÷èñëÿòü åæåãîäíóþ äîáàâêó çà 2019 ãîä íà äåòåé ê  çàðïëàòå êîíêðåòíîãî ñîòðóäíèêà 
+--(íîìåð ñîòðóäíèêà - ïàðàìåòð ïåðåäàâàåìûé ôóíêöèè) áåç çàíåñåíèÿ â òàáëèöó.
+
+-ÏÐÀÂÈËÎ ÂÛ×ÈÑËÅÍÈß ÄÎÁÀÂÊÈ
+
+--Äîáàâêà ê çàðàáîòíîé ïëàòå íà äåòåé  âû÷èñëÿåòñÿ òîëüêî äëÿ ðàáîòàâøèõ â äåêàáðå 2019 ãîäó ñîòðóäíèêîâ ïî ñëåäóþùåìó ïðàâèëó: 
+--äîáàâêà ðàâíà X% îò ñóììû äîëæíîñòíîãî ìåñÿ÷íîãî îêëàäà (ïîëå minsalary òàáëèöû job) ïî çàíèìàåìîé â äåêàáðå 2019 ãîäà äîëæíîñòè è âñåõ íà÷èñëåííûõ 
+--çà 2019 ãîä ïðåìèé (ïîëå bonvalue òàáëèöû bonus), ãäå:
+--X% ðàâíû X1% , åñëè ñîòðóäíèê èìååò îäíîãî ðåá¸íêà;
+--X% ðàâíû X2% , åñëè ñîòðóäíèê èìååò äâóõ äåòåé;
+--X% ðàâíû X3% , åñëè ñîòðóäíèê èìååò òð¸õ è áîëåå äåòåé.
+--X1%<X2%<X3%  ÿâëÿþòñÿ ïåðåäàâàåìûìè ïðîöåäóðå è ôóíêöèè ïàðàìåòðàìè. Êðîìå ýòîãî, ôóíêöèè â êà÷åñòâå ïàðàìåòðà ïåðåäà¸òñÿ íîìåð ñîòðóäíèêà (empno). 
+
+
+CREATE
+OR REPLACE PACKAGE Lab4 AS PROCEDURE childBonus(x1 IN REAL, x2 IN REAL, x3 IN REAL);
+FUNCTION empChildBonus(
+  employee IN INTEGER,
+  x1 IN REAL,
+  x2 IN REAL,
+  x3 IN REAL
+) RETURN REAL;
+END Lab4;
+/ CREATE
+OR REPLACE PACKAGE BODY Lab4 AS PROCEDURE childBonus(x1 IN REAL, x2 IN REAL, x3 IN REAL) IS CURSOR child_cursor IS
+SELECT
+  salary_no,
+  minsalary + total_bonus
+FROM
+  (
+    SELECT
+      career.empno AS salary_no,
+      minsalary
+    FROM
+      career
+      JOIN job ON job.jobno = career.jobno
+    WHERE
+      (
+        extract(
+          YEAR
+          FROM
+            career.startdate
+        ) <= 2019
+        AND (
+          extract(
+            YEAR
+            FROM
+              career.startdate
+          ) IS NULL
+          OR extract(
+            YEAR
+            FROM
+              career.enddate
+          ) > 2019
+        )
+      )
+  )
+  JOIN (
+    SELECT
+      empno AS bonus_no,
+      nvl(sum(nvl(bonvalue, 0)), 0) AS total_bonus
+    FROM
+      bonus
+    WHERE
+      bonus.year = 2019
+    GROUP BY
+      empno
+  ) ON salary_no = bonus_no;
+employee INTEGER;
+total_sum REAL: = 0;
+children INTEGER: = 0;
+child_bonus REAL: = 0;
+BEGIN OPEN child_cursor;
+LOOP FETCH child_cursor INTO employee,
+  total_sum;
+EXIT
+  WHEN child_cursor % NOTFOUND;
+SELECT
+  nchild INTO children
+FROM
+  emp
+WHERE
+  empno = employee;
+IF (children > 0) THEN IF children = 1 THEN child_bonus: = total_sum * x1 / 100;
+ELSIF children = 2 THEN child_bonus: = total_sum * x2 / 100;
+ELSIF children > 2 THEN child_bonus: = total_sum * x3 / 100;
+END IF;
+INSERT INTO
+  bonus
+VALUES
+  (employee, 1, 2020, child_bonus, NULL);
+END IF;
+END LOOP;
+CLOSE child_cursor;
+END childBonus;
+FUNCTION empChildBonus(
+  emp_no IN INTEGER,
+  x1 IN REAL,
+  x2 IN REAL,
+  x3 IN REAL
+) RETURN REAL IS total_bonus REAL: = 0;
+salary_min REAL: = 0;
+total_sum REAL: = 0;
+children INTEGER: = 0;
+child_bonus REAL: = 0;
+BEGIN begin
+select
+  sum(nvl(BONVALUE, 0)) into total_bonus
+from
+  BONUS
+where
+  (
+    EMPNO = emp_no
+    and BONUS.YEAR = 2019
+  )
+group by
+  EMPNO;
+exception
+  when NO_DATA_FOUND then cbonus: = 0;
+end;
+SELECT
+  minsalary into salary_min
+FROM
+  career
+  JOIN job ON job.jobno = career.jobno
+WHERE
+  (
+    career.empno = emp_no
+    AND extract(
+      YEAR
+      FROM
+        career.startdate
+    ) <= 2019
+    AND (
+      extract(
+        YEAR
+        FROM
+          career.startdate
+      ) IS NULL
+      OR extract(
+        YEAR
+        FROM
+          career.enddate
+      ) > 2019
+    )
+  )
+FROM
+  career;
+SELECT
+  nchild INTO children
+FROM
+  emp
+WHERE
+  empno = emp_no;
+EXCEPTION
+  WHEN no_data_found THEN children: = 0;
+total_sum: = total_bonus + salary_min;
+IF (children > 0) THEN IF children = 1 THEN child_bonus: = total_sum * x1 / 100;
+ELSIF children = 2 THEN child_bonus: = total_sum * x2 / 100;
+ELSIF children > 2 THEN child_bonus: = total_sum * x3 / 100;
+END IF;
+END IF;
+RETURN child_bonus;
+END empChildBonus;
+END Lab4;
+
+--2. Ñîçäàéòå òðèããåð, êîòîðûé ïðè äîáàâëåíèè èëè îáíîâëåíèè çàïèñè â òàáëèöå EMP 
+-- äîëæåí îòìåíÿòü äåéñòâèå è ñîîáùàòü îá îøèáêå:
+--a) åñëè äëÿ ñîòðóäíèêà ñ ñåìåéíûì ïîëîæåíèåì õîëîñò (s)  â ñòîëáöå Nchild óêàçûâàåòñÿ íå íóëåâîå êîëè÷åñòâî äåòåé èëè NULL:;
+--b) åñëè äëÿ ëþáîãî ñîòðóäíèêà óêàçûâàåòñÿ îòðèöàòåëüíîå êîëè÷åñòâî äåòåé èëè Null.
+
+CREATE
+OR REPLACE TRIGGER a_2 BEFORE
+INSERT
+  OR
+UPDATE
+  OF NCHILD ON EMP FOR EACH ROW BEGIN if :new.MSTAT = 's'
+  AND (
+    :new.NCHILD > 0
+    OR :new.NCHILD is null
+  ) THEN raise_application_error(-20001, 'Incorrect child number');
+END IF;
+END;
+CREATE
+OR REPLACE TRIGGER b_2 BEFORE
+INSERT
+  OR
+UPDATE
+  OF NCHILD ON EMP FOR EACH ROW BEGIN IF (
+    :new.NCHILD < 0
+    OR :new.NCHILD is null
+  ) THEN raise_application_error(-20001, 'Incorrect child number');
+END IF;
+END;

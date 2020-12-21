@@ -1,0 +1,133 @@
+--Лабораторная выполняется в СУБД  Oracle. 
+--Cкопируйте файл  EDU5.txt  в каталог C:\TEMP .
+--Раскройте файл и ознакомтесь со скриптом создания и заполнения таблиц для выполнения лабораторной. 
+--Произведите запуск Oracle.  Запустите скрипты EDU5.txt на выполнение.
+--Вставте в эту строку Ваши ФИО, номер группы, курса. ФИО Ульяницкий В. А., группа 1, курс 4.      
+--Файл с отчётом о выполнении лабораторной создаётся путём вставки скриптов, созданных Вами программ после пунктов 1-6.
+--Файл отчёта именуется фамилией студента  в английской транскрипции, с расширением .txt и сохраняется в каталог.                  .
+
+--1. Создайте триггер, который при обновлении записи в таблице EMP 
+-- должен отменять действие и сообщать об ошибке
+-- a) если семейное положение сотрудника холост/одинокая (s) изменяется на семейное положение разведен/разведена (d); 
+-- b) семейное положение женат/замужем (m) изменяется  на семейное положение холост/одинокая (s);
+CREATE
+OR REPLACE TRIGGER marriage_trigger BEFORE
+UPDATE
+  ON emp FOR EACH ROW BEGIN IF (
+    (
+      :old.mstat = 's'
+      AND :new.mstat = 'd'
+    )
+    OR (
+      :old.mstat = 'm'
+      AND :new.mstat = 's'
+    )
+  ) THEN RAISE_APPLICATION_ERROR(-20001, 'Incorrect marriage status change');
+END IF;
+END;
+--2. Создайте триггер, который при добавлении или обновлении записи в таблице EMP должен:
+-- a) осуществлять вставку данного равного 0,
+-- если для сотрудника с семейным положением холост/одинокая (s)  в столбце Nchild указывается данное, отличное от 0;
+-- b) осуществлять вставку данного NULL,
+-- если для любого сотрудника указывается отрицательное количество детей.
+CREATE
+OR REPLACE TRIGGER child_trigger BEFORE
+INSERT
+  OR
+UPDATE
+  ON emp FOR EACH ROW BEGIN IF (
+    :new.mstat = 's'
+    AND (
+      :new.nchild IS NULL
+      OR :new.nchild <> 0
+    )
+  ) THEN :new.nchild: = 0;
+END IF;
+IF (
+  :new.nchild IS NOT NULL
+  AND :new.nchild < 0
+) THEN :new.nchild: = NULL;
+END IF;
+END;
+--3. Создайте триггер, который при обновлении записи в таблице EMP 
+-- должен отменять действие и сообщать об ошибке, если для сотрудников, находящихся в браке (m) в столбце Nchild 
+-- новое значение увеличивается (рождение ребёнка) или уменьшается (достижение ребёнком совершеннолетия) более чем на 1.
+CREATE
+OR REPLACE TRIGGER child_change_trigger BEFORE
+UPDATE
+  ON emp FOR EACH ROW BEGIN IF (
+    :new.mstat = 'm'
+    AND ABS(:new.nchild - :old.nchild) > 1
+  ) THEN RAISE_APPLICATION_ERROR(
+    -20001,
+    'Incorrect number of childern change'
+  );
+END IF;
+END;
+--4. Создать триггер, который отменяет любые действия (начисление, изменение, удаление) с премиями (таблица bonus) 
+-- неработающих в настоящий момент в организации сотрудников и сообщает об ошибке.
+CREATE
+OR REPLACE TRIGGER bonus_trigger BEFORE
+INSERT
+  OR
+UPDATE
+  OR DELETE ON bonus FOR EACH ROW DECLARE leave_count INTEGER;
+BEGIN
+SELECT
+  COUNT(*) into leave_count
+FROM
+  career
+WHERE
+  empno = :new.empno
+  and enddate IS NULL;
+IF leave_count = 0 THEN RAISE_APPLICATION_ERROR(-20001, 'Incorrect bonus change');
+END IF;
+END;
+--5. Создайте триггер, который после выполнения действия (вставка, обновление, удаление) с таблицей job
+-- создаёт запись в таблице temp_table, с указанием названия действия (delete, update, insert) активизирующего триггер.
+CREATE
+OR REPLACE TRIGGER job_log_trigger
+AFTER
+INSERT
+  OR
+UPDATE
+  OR DELETE ON job FOR EACH ROW BEGIN IF DELETING THEN
+INSERT INTO
+  temp_table
+values('delete');
+END IF;
+IF UPDATING THEN
+INSERT INTO
+  temp_table
+VALUES('update');
+END IF;
+IF INSERTING THEN
+INSERT INTO
+  temp_table
+VALUES('insert');
+END IF;
+END;
+--6. Создайте триггер, который до выполнения обновления в таблице job столбца minsalary отменяет действие, сообщает об ошибке
+-- и создаёт запись в таблице temp_table c указанием "более 10%",
+-- если должностной оклад изменяется более чем 10% (увеличивается или уменьшается). 
+CREATE
+OR REPLACE PROCEDURE save_error_log AS PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+INSERT INTO
+  temp_table
+VALUES
+  ('more than 10%');
+COMMIT;
+END;
+CREATE
+OR REPLACE TRIGGER minsalary_trigger BEFORE
+UPDATE
+  ON job FOR EACH ROW
+  WHEN (
+    new.minsalary IS NOT NULL
+    AND old.minsalary IS NOT NULL
+    AND (new.minsalary / old.minsalary) NOT BETWEEN 0.9
+    AND 1.1
+  ) BEGIN save_error_log();
+RAISE_APPLICATION_ERROR(-20001, 'Incorrect minsalary change');
+END;

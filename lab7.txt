@@ -1,0 +1,249 @@
+--Лабораторная выполняется в СУБД  Oracle. 
+--Cкопируйте файл  EDU7.txt  в каталог C:\TEMP .
+--Раскройте файл и ознакомтесь со скриптом создания и заполнения таблиц для выполнения лабораторной. 
+--Запустите скрипт EDU7.txt на выполнение.
+--Вставте в эту строку Ваши ФИО, номер группы, курса. ФИО                       , группа            , курс 4.      
+--Файл с отчётом о выполнении лабораторной создаётся путём вставки скриптов, созданных 
+--Вами операторов после пунктов 1- 8.
+--Файл отчёта именуется фамилией студента  в английской транскрипции, с расширением .txt 
+--и сохраняется в каталог.
+
+--1. Модифицируйте таблицу emp, добавив поле empaddr, содержащую сведения об адресе сотрудника. 
+--Данное поле должно являться полем объектного типа empaddr_ty  с атрибутами 
+--country varchar (10), city varchar (10), street varchar (10), homenumber integer, postcode integer, startlifedate date (дата заселения). 
+--Объектный тип должен содержать метод , определяющий время проживания (в днях) сотрудника по указанному 
+--адресу до текущего момента, округлённое до дня.
+
+CREATE
+OR REPLACE TYPE empaddr_ty AS OBJECT (
+  COUNTRY VARCHAR(10),
+  CITY VARCHAR(10),
+  STREET VARCHAR(10),
+  HOMENUMBER INTEGER,
+  POSTCODE INTEGER,
+  STARTLIFEDATE DATE,
+  MEMBER FUNCTION DAYS_LIVED RETURN INTEGER
+) NOT FINAL;
+/ CREATE
+OR REPLACE TYPE BODY empaddr_ty AS MEMBER FUNCTION DAYS_LIVED RETURN INTEGER IS BEGIN RETURN CURRENT_DATE - STARTLIFEDATE;
+END DAYS_LIVED;
+END;
+/
+ALTER TABLE
+  emp
+ADD
+  empaddr empaddr_ty;
+
+--2. Дополните таблицу emp следующими данными для сотрудников:
+--505	Belarus	Minsk	Chkalova 		2	220039		15.01.2007
+--303	Belarus	Minsk	Poushkina		12	220087		16.05.2005
+--205	Belarus	Minsk	Serova			14	220013		20.11.2008
+--412	Belarus	Minsk	Serova			23	220013		14.12.2005
+--503	Belarus	Minsk	Chkalova		6	220039		28.10.2008
+--Для остальных сотрудников атрибуты поля  empaddr не определены.
+
+UPDATE
+  emp
+SET
+  empaddr = empaddr_ty(
+    'Belarus',
+    'Minsk',
+    'Chkalova',
+    2,
+    220039,
+    TO_DATE('15.01.2007', 'dd.mm.yyyy')
+  )
+WHERE
+  empno = 505;
+UPDATE
+  emp
+SET
+  empaddr = empaddr_ty(
+    'Belarus',
+    'Minsk',
+    'Poushkina',
+    12,
+    220087,
+    TO_DATE('16.05.2005', 'dd.mm.yyyy')
+  )
+WHERE
+  empno = 303;
+UPDATE
+  emp
+SET
+  empaddr = empaddr_ty(
+    'Belarus',
+    'Minsk',
+    'Serova',
+    14,
+    220013,
+    TO_DATE('20.11.2008', 'dd.mm.yyyy')
+  )
+WHERE
+  empno = 205;
+UPDATE
+  emp
+SET
+  empaddr = empaddr_ty(
+    'Belarus',
+    'Minsk',
+    'Serova',
+    23,
+    220013,
+    TO_DATE('14.12.2005', 'dd.mm.yyyy')
+  )
+WHERE
+  empno = 412;
+UPDATE
+  emp
+SET
+  empaddr = empaddr_ty(
+    'Belarus',
+    'Minsk',
+    'Chkalova',
+    6,
+    220039,
+    TO_DATE('28.10.2008', 'dd.mm.yyyy')
+  )
+WHERE
+  empno = 503;
+
+--3. Создайте запрос, определяющий номер сотрудника, его имя,  время проживания по данному в таблице  emp адресу 
+--для сотрудников с номерами 505, 205, 503. Использовать метод, созданный в п.1.
+
+SELECT empno, empname, e.empaddr.days_lived() AS days FROM emp e WHERE empno IN (505, 205, 503);
+
+--4. Используя наследование, создайте объектный тип empaddres_ty на основе ранее созданного объектного типа 
+--empaddr_ty с дополнительными атрибутами 
+--houmtel varchar (15), mtstel varchar (15), welcomtel varchar (15).
+
+CREATE
+OR REPLACE TYPE empaddres_ty UNDER empaddr_ty (
+  HOUMTEL VARCHAR(15),
+  MTSTEL VARCHAR(15),
+  WELCOMTEL VARCHAR(15)
+);
+
+--5. Создайте таблицу emphouminf с полями empno, empaddres (объектного типа  empaddres_ty), 
+--связанную с таблицей emp по полю empno.
+
+CREATE
+OR REPLACE TABLE emphouminf (
+  EMPNO INTEGER NOT NULL,
+  EMPADDRES empaddres_ty,
+  CONSTRAINT fk_emp FOREIGN KEY (EMPNO) REFERENCES emp(EMPNO)
+);
+
+--6. Внесите в таблицу emphouminf следующие данные для сотрудников:
+--505	Belarus	Minsk	Chkalova    	2    220039	15.01.2007	2241412	    7111111      6111111
+--303	Belarus	Minsk	Poushkina  	12   220087	16.05.2005	2341516     Null         6137677
+--205	Belarus	Minsk	Serova	 	14   220013	20.11.2008   	Null	    Null         6276655
+--412	Belarus	Minsk	Serova       	23   220013	14.12.2005	2351412	    Null         Null	
+--503	Belarus	Minsk	Chkalova    	6    220039	28.10.2008      Null	    7161512      6122334	
+
+INSERT INTO
+  emphouminf (empno, empaddres)
+VALUES
+  (
+    505,
+    empaddres_ty(
+      'Belarus',
+      'Minsk',
+      'Chkalova',
+      2,
+      220039,
+      TO_DATE('15.01.2007', 'dd.mm.yyyy'),
+      2241412,
+      7111111,
+      6111111
+    )
+  );
+INSERT INTO
+  emphouminf (empno, empaddres)
+VALUES
+  (
+    303,
+    empaddres_ty(
+      'Belarus',
+      'Minsk',
+      'Poushkina',
+      12,
+      220087,
+      TO_DATE('16.05.2005', 'dd.mm.yyyy'),
+      2341516,
+      NULL,
+      6137677
+    )
+  );
+INSERT INTO
+  emphouminf (empno, empaddres)
+VALUES
+  (
+    205,
+    empaddres_ty(
+      'Belarus',
+      'Minsk',
+      'Serova',
+      14,
+      220013,
+      TO_DATE('20.11.2008', 'dd.mm.yyyy'),
+      NULL,
+      NULL,
+      6276655
+    )
+  );
+INSERT INTO
+  emphouminf (empno, empaddres)
+VALUES
+  (
+    412,
+    empaddres_ty(
+      'Belarus',
+      'Minsk',
+      'Serova',
+      23,
+      220013,
+      TO_DATE('14.12.2005', 'dd.mm.yyyy'),
+      2351412,
+      NULL,
+      NULL
+    )
+  );
+INSERT INTO
+  emphouminf (empno, empaddres)
+VALUES
+  (
+    503,
+    empaddres_ty(
+      'Belarus',
+      'Minsk',
+      'Chkalova',
+      6,
+      220039,
+      TO_DATE('28.10.2008', 'dd.mm.yyyy'),
+      NULL,
+      7161512,
+      6122334
+    )
+  );
+
+--7. Создайте запрос, определяющий номер сотрудника, его имя, домашний телефон и время проживания 
+--по указанному адресу для сотрудников с номерами 303, 205, 412. Использовать метод, созданный в п.1.
+
+SELECT
+  e.empno,
+  e.empname,
+  emphouminf.empaddres.houmtel AS houmtel,
+  e.empaddr.days_lived() AS days
+FROM
+  emp e
+  JOIN emphouminf ON e.empno = emphouminf.empno
+WHERE
+  e.empno IN (303, 205, 412);
+
+--8. Удалите созданные таблицы и объектные типы.
+
+DROP TABLE emphouminf;
+ALTER TABLE emp DROP COLUMN empaddr;
+DROP TYPE empaddres_ty;
+DROP TYPE empaddr_ty;

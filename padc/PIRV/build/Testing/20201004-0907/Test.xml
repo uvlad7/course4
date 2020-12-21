@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="Linux-g++-9"
+	BuildStamp="20201004-0907-Experimental"
+	Name="valkovik-TUF-GAMING-FX504GE-FX80GE"
+	Generator="ctest-3.16.3"
+	CompilerName="/bin/g++-9"
+	CompilerVersion="9.3.0"
+	OSName="Linux"
+	Hostname="valkovik-TUF-GAMING-FX504GE-FX80GE"
+	OSRelease="5.4.0-48-generic"
+	OSVersion="#52-Ubuntu SMP Thu Sep 10 10:58:49 UTC 2020"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="158"
+	ProcessorCacheSize="8192"
+	NumberOfLogicalCPU="8"
+	NumberOfPhysicalCPU="4"
+	TotalVirtualMemory="2047"
+	TotalPhysicalMemory="23908"
+	LogicalProcessorsPerPhysical="2"
+	ProcessorClockFrequency="3452.48"
+	>
+	<Testing>
+		<StartDateTime>Oct 04 23:08 +03</StartDateTime>
+		<StartTestTime>1601842115</StartTestTime>
+		<TestList>
+			<Test>./Test1</Test>
+		</TestList>
+		<Test Status="passed">
+			<Name>Test1</Name>
+			<Path>.</Path>
+			<FullName>./Test1</FullName>
+			<FullCommandLine>/home/valkovik/PIRV/build/Test1</FullCommandLine>
+			<Results>
+				<NamedMeasurement type="numeric/double" name="Execution Time">
+					<Value>0.0625893</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Processors">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Completion Status">
+					<Value>Completed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Command Line">
+					<Value>/home/valkovik/PIRV/build/Test1</Value>
+				</NamedMeasurement>
+				<Measurement>
+					<Value encoding="base64" compression="gzip">eJytjMENwDAIxP6Z4kaA40Bkj6yQCdr9VYbowx9L9rnPuw1ugw80LBpBNpgCe0S4EFmI3ZBGiAW1kCJq0vXD4gP51hi3====</Value>
+				</Measurement>
+			</Results>
+		</Test>
+		<EndDateTime>Oct 04 23:08 +03</EndDateTime>
+		<EndTestTime>1601842115</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>
