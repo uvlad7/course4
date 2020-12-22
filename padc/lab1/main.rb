@@ -205,7 +205,7 @@ if __FILE__ == $0
       x.report([n1, n2, n3, 1, 0].join(';')) { point_multiply(a, b, c, n1, n2, n3, :outer) }
       x.report([n1, n2, n3, 2, 0].join(';')) { point_multiply(a, b, c, n1, n2, n3, :inner) }
     end
-    File.open("#{__dir__}/test.txt", 'a+') do |f|
+    File.open("#{__dir__}/test.csv", 'a+') do |f|
       test.each do |bnch|
         f.puts "#{SIZE};#{bnch.label};#{bnch.real}"
       end
@@ -216,7 +216,7 @@ if __FILE__ == $0
         x.report([n1, n2, n3, 1, bs].join(';')) { block_multiply(a, b, c, n1, n2, n3, bs, :outer) }
         x.report([n1, n2, n3, 2, bs].join(';')) { block_multiply(a, b, c, n1, n2, n3, bs, :inner) }
       end
-      File.open("#{__dir__}/test.txt", 'a+') do |f|
+      File.open("#{__dir__}/test.csv", 'a+') do |f|
         test.each do |bnch|
           f.puts "#{SIZE};#{bnch.label};#{bnch.real}"
         end

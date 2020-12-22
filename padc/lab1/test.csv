@@ -1,3 +1,4 @@
+﻿number of processes;n1;n2;n3;parallelisation: 0 - none, 1 - outer, 2 - inner, -1 - test using standart library;block size, 0 - point algorithm;time
 4;67;125;253;-1;0;1.8103568670048844
 4;67;125;253;0;0;11.773113856004784
 4;67;125;253;1;0;3.5989954940014286
