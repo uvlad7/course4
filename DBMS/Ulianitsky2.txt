@@ -1,0 +1,149 @@
+--Выбирите СУБД (DB2, Oracle) для выполнения лабораторной. 
+--В зависимости от выбора скопируйте файлы  FPMI\SERV314\SUBFACULTY\каф ИСУ\Исаченко\Лабораторные\EDU.txt , ............\EDU1.txt  (для DB2) или ......\EDU.sql, .....\EDU1.sql (для Oracle) в каталог C:\TEMP .
+--Раскройте файл и ознакомтесь со скриптом создания и заполнения таблиц для выполнения лабораторной.
+--В случае выбора DB2, произведите запуск IBM DB2 и соеденитесь с БД EDU. Запустите скриптs EDU.txt, EDU1.txt на выполнение.
+--В случае выбора Oracle, произведите запуск SQLPlus или PLSQLDeveloper и соеденитесь с БД под логином Scott и паролем Tiger.  Запустите скрипты EDU.sql и EDU1.sql на выполнение.
+--Вставте в эту строку Ваши ФИО, номер группы, курса. ФИО Ульяницкий В. А,, группа 1, курс 4.      
+--Файл с отчётом о выполнении лабораторной создаётся путём вставки соответсвующегоselect-предложения после строки с текстом задания. 
+--Файл отчёта именуется фамилией студента  в английской транскрипции, с расширением .txt и сохраняется в каталог  fpmi-serev604\common_stud\Исаченко\Группа3                   .
+--Тексты заданий:
+--1.Уменьшите верхнюю границу минимальной заработной платы в таблице JOB на 50 единиц.
+(нижняя, верхней нет)
+UPDATE job
+SET minsalary = minsalary - 50;
+rollback;
+--2. Уменьшите минимальную зарплату в таблице JOB на 10%  для всех должностей, минимальная зарплата для которых превышает 7000 единиц.	
+UPDATE job
+SET minsalary = minsalary * 0.9 WHERE minsalary > 7000;
+rollback;
+--3. Опустите минимальную зарплату в таблице JOB на 10% для водителей  (Driver) и поднимите минимальную зарплату для исполнительных директоров (Executive Director) на 10%  (одним оператором).
+UPDATE job
+SET minsalary = CASE
+                    WHEN jobname = 'Driver' THEN minsalary * 0.9
+                    ELSE minsalary * 1.1
+    END
+WHERE jobname IN ('Driver', 'Executive Director');
+rollback;
+--4. Установите минимальную зарплату финансового директора ( Financial Director) равной двум зарплатам  клерка (Clerk).
+UPDATE job
+SET minsalary = (SELECT minsalary FROM job WHERE jobname = 'Clerk') * 2.0
+WHERE jobname = 'Financial Director';
+rollback;
+--5. Приведите в таблице EMP имена и фамилии служащих, имена которых начинаются на буквы 'P', ‘R’ и ‘S’, полностью к нижнему регистру.
+UPDATE emp
+SET empname = LOWER(empname)
+WHERE REGEXP_LIKE (empname, '^[PRS]');
+rollback;
+--6. Приведите в таблице EMP имена и фамилии служащих, имена которых начинаются на буквы 'A', ‘D’ и ‘O’, полностью к верхнему регистру.
+UPDATE emp
+SET empname = UPPER(empname)
+WHERE REGEXP_LIKE (empname, '^[ADO]');
+rollback;
+--7. Приведите в таблице EMP имена и фамилии служащих, с именами Jon,  Ivan , полностью к верхнему регистру.
+UPDATE emp
+SET empname = UPPER(empname)
+WHERE REGEXP_LIKE (empname, '^(Jon |Ivan )');
+rollback;
+--8. Оставте в таблице EMP только имена сотрудников (фамилии удалите).
+UPDATE emp
+SET empname = substr(empname, 0, instr(empname, ' ') - 1);
+rollback;
+--9. Перенесите отдел с кодом U03 по адресу отдела управления персоналом (Personnel management). 
+UPDATE dept
+SET deptaddress = (SELECT deptaddress FROM dept WHERE deptname = 'Personnel management')
+WHERE deptid = 'U03';
+rollback;
+--10. Добавьте нового сотрудника в таблицу EMP. Его номер равен  900, имя и фамилия ‘Frank Hayes’, дата рождения ‘12-09-1978’.	
+INSERT INTO emp VALUES(900, 'Frank Hayes', DATE '1978-09-12');
+--11. Определите нового сотрудника (см. предыдущее задание) на работу в административный отдел (Administration) с адресом 'Belarus, Minsk', начиная с текущей даты в должности менеджера (Manager).
+INSERT INTO career VALUES((SELECT jobno FROM job WHERE jobname = 'Manager'), 900, (SELECT deptid FROM dept WHERE deptname = 'Administration' AND deptaddress = 'Belarus, Minsk'), CURRENT_DATE, NULL);
+rollback;
+--12. Удалите все записи из таблицы TMP_EMP. Добавьте в нее информацию о сотрудниках, которые работают инженерами (Engineer) или программистами (Programmer) в настоящий момент.
+DELETE
+FROM tmp_emp;
+INSERT INTO tmp_emp (empno, empname, birthdate)
+    (SELECT emp.empno,
+            emp.empname,
+            emp.birthdate
+     FROM emp
+              JOIN career ON emp.empno = career.empno
+              JOIN job ON career.jobno = job.jobno
+     WHERE career.enddate IS NULL
+       AND (job.jobname IN ('Engineer', 'Programmer')));
+rollback;
+--13. Добавьте в таблицу TMP_EMP информацию о тех сотрудниках, которые ни разу не увольнялись и работают на предприятии в настоящий момент.
+INSERT INTO tmp_emp (empno, empname, birthdate)
+    (SELECT empno,
+            empname,
+            birthdate
+     FROM emp
+     WHERE empno IN ((SELECT empno
+                      FROM career
+                      WHERE career.enddate IS NOT NULL)
+                     MINUS
+                     (SELECT empno
+                      FROM career
+                      WHERE career.enddate IS NULL)));
+
+rollback;
+--14. Добавьте в таблицу TMP_EMP информацию о тех сотрудниках, которые хотя бы раз увольнялись и работают на предприятии в настоящий момент.
+INSERT INTO tmp_emp (empno, empname, birthdate)
+    (SELECT empno,
+            empname,
+            birthdate
+     FROM emp
+     WHERE empno IN ((SELECT empno
+                      FROM career
+                      WHERE career.enddate IS NULL)
+                     INTERSECT
+                     (SELECT empno
+                      FROM career
+                      WHERE career.enddate IS NOT NULL)));
+rollback;
+--15. Удалите все записи из таблицы TMP_JOB и добавьте в нее информацию по тем должностям, на которых в  настоящий момент никто не работает.
+DELETE FROM tmp_job;
+
+INSERT INTO tmp_job (jobno, jobname, minsalary)
+    (SELECT 	job.jobno,
+               job.jobname,
+               job.minsalary
+     FROM job JOIN career ON job.jobno = career.jobno
+     WHERE career.enddate IS NULL
+     GROUP BY job.jobno,
+              job.jobname,
+              job.minsalary
+     HAVING count(DISTINCT career.empno) = 0);
+rollback;
+--16. Удалите всю информацию о начислениях премий сотрудникам, которые в настоящий момент уже не работают на предприятии.
+DELETE
+FROM bonus
+WHERE empno NOT IN
+      (SELECT empno
+       FROM career
+       WHERE enddate IS NULL);
+rollback;
+--17. Начислите премию в размере 20% минимального должностного оклада всем сотрудникам, работающим на предприятии. 
+--Зарплату начислять по должности, занимаемой сотрудником в настоящий момент и отнести ее на текущий месяц.
+INSERT INTO bonus
+    (SELECT career.empno,
+            EXTRACT(MONTH FROM CURRENT_DATE),
+            EXTRACT(YEAR FROM CURRENT_DATE),
+            job.minsalary * 0.20
+     FROM career
+              JOIN job ON career.jobno = job.jobno
+     WHERE enddate IS NULL);
+rollback;
+--18. Удалите данные о премиях  за все годы до 2019.	
+DELETE FROM bonus WHERE YEAR < 2019;
+rollback;
+--19. Удалите информацию о прошлой карьере тех сотрудников, которые в настоящий момент  работают на предприятии.
+DELETE
+FROM career
+WHERE empno IN (SELECT empno FROM career WHERE enddate IS NULL)
+  AND enddate IS NOT NULL;
+rollback;
+--20. Удалите записи из таблицы EMP для тех сотрудников, которые не работают на предприятии в настоящий момент.
+DELETE
+FROM emp
+WHERE empno NOT IN (SELECT DISTINCT empno FROM career WHERE enddate IS NULL);
+rollback;
